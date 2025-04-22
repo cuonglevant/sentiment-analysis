@@ -6,26 +6,34 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./App.css";
+import NavBar from "./components/NavBar.tsx";
 import Login from "./modules/login/index.tsx";
 import Signup from "./modules/signup/index.tsx";
+import Course from "./modules/course/index.tsx";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Feedback from "./modules/feedback/index.tsx";
 function App() {
   return (
     <Router>
       <div className="App">
+      {<NavBar/>}
         <Routes>
           {/* Redirect root path to login page */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/course" replace />} />
 
           {/* Authentication routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
           {/* Add your other application routes here */}
-          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          <Route path="/course" element={<Course />} />
+          <Route path="/feedback" element={<Feedback/>} />
 
           {/* Fallback for unknown routes */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+
+        
       </div>
     </Router>
   );

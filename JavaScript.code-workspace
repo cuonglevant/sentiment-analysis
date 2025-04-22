@@ -1,0 +1,25 @@
+{
+  "folders": [
+	{
+		"path": "../../../JavaScript"
+	},
+	{
+		"path": "../../../ReactJS"
+	},
+	{
+		"path": "../../Doanchuyennganh4/QGT-FrontEnd"
+	},
+	{
+		"path": "../../Doanchuyennganh4/mcq-frontend"
+	},
+	{
+		"path": "../../../Cloud Computing/Exercise/E8"
+	},
+	{
+		"path": "."
+	}
+],
+  "settings": {
+    "liveServer.settings.multiRootWorkspaceName": "ReactJS"
+  }
+}
