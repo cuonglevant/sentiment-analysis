@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 // Define the rating criteria
 interface RatingCriteria {
@@ -20,12 +19,26 @@ interface FeedbackState {
 function Feedback() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const params = useParams<{ courseId?: string }>();
+
+  // Get course ID from either route params or query params
+  const routeParamCourseId = params.courseId || "";
+
   // Parse query parameters
   const queryParams = new URLSearchParams(location.search);
-  const courseId = queryParams.get("courseId") || "";
-  const courseName = queryParams.get("courseName") || "";
-  
+  const queryParamCourseId = queryParams.get("courseId") || "";
+  const courseName = queryParams.get("courseName") || "Untitled Course";
+
+  // Use route param if available, otherwise use query param
+  const courseId = routeParamCourseId || queryParamCourseId;
+
+  // Log the course information received
+  useEffect(() => {
+    console.log("Feedback component received:");
+    console.log(`Course ID: ${courseId}`);
+    console.log(`Course Name: ${courseName}`);
+  }, [courseId, courseName]);
+
   // Initialize feedback state
   const [feedback, setFeedback] = useState<FeedbackState>({
     courseId,
@@ -62,19 +75,44 @@ function Feedback() {
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Here you would normally send the feedback data to your backend
-    console.log("Submitting feedback:", feedback);
-    
+
+    // Format feedback for readable console output
+    const formattedFeedback = {
+      courseDetails: {
+        id: feedback.courseId,
+        name: feedback.courseName,
+      },
+      ratings: feedback.criteria.reduce((acc, criterion) => {
+        acc[criterion.id] = criterion.rating;
+        return acc;
+      }, {} as Record<string, number>),
+      averageRating: (
+        feedback.criteria.reduce((sum, item) => sum + item.rating, 0) /
+        feedback.criteria.length
+      ).toFixed(1),
+      comment: feedback.comment,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Log the complete feedback
+    console.log("Submitting feedback for course:");
+    console.log(JSON.stringify(formattedFeedback, null, 2));
+
     // Show success message
     alert("Cảm ơn bạn đã gửi đánh giá!");
-    
+
     // Navigate back to courses page
-    navigate("/courses");
+    navigate("/course");
   };
 
   // Star rating component
-  const StarRating = ({ rating, onChange }: { rating: number; onChange: (rating: number) => void }) => {
+  const StarRating = ({
+    rating,
+    onChange,
+  }: {
+    rating: number;
+    onChange: (rating: number) => void;
+  }) => {
     return (
       <div className="flex items-center">
         {[1, 2, 3, 4, 5].map((star) => (
@@ -83,7 +121,7 @@ function Feedback() {
             type="button"
             onClick={() => onChange(star)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 onChange(star);
               }
@@ -104,13 +142,20 @@ function Feedback() {
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Đánh giá khóa học</h1>
       <h2 className="text-xl font-semibold mb-4">{feedback.courseName}</h2>
-      
+      <p className="text-gray-500 mb-6">Course ID: {feedback.courseId}</p>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Rating criteria */}
         <div className="space-y-4">
           {feedback.criteria.map((criterion) => (
-            <div key={criterion.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <label htmlFor={criterion.id} className="font-medium mb-2 sm:mb-0">
+            <div
+              key={criterion.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
+              <label
+                htmlFor={criterion.id}
+                className="font-medium mb-2 sm:mb-0"
+              >
                 {criterion.name}
               </label>
               <StarRating
@@ -120,10 +165,13 @@ function Feedback() {
             </div>
           ))}
         </div>
-        
+
         {/* Comments section */}
         <div className="mt-6">
-          <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="comment"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Nhận xét của bạn
           </label>
           <textarea
@@ -135,12 +183,12 @@ function Feedback() {
             onChange={handleCommentChange}
           />
         </div>
-        
+
         {/* Submit button */}
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => navigate("/courses")}
+            onClick={() => navigate("/course")}
             className="mr-4 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Hủy
