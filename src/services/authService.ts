@@ -5,10 +5,10 @@ const API_URL = "http://localhost:8080"; // Replace with your API URL
 // Authentication API service
 const authService = {
   // Login function
-  login: async (username: string, password: string) => {
+  login: async (email: string, password: string) => {
     try {
       const response = await axios.post(`${API_URL}/auth/signin`, {
-        username,
+        email,
         password,
       });
 
@@ -26,7 +26,7 @@ const authService = {
 
   // Signup function
   signup: async (userData: {
-    username: string;
+    email: string;
     password: string;
     firstName?: string;
     lastName?: string;

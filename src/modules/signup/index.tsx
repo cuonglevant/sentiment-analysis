@@ -1,5 +1,7 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import authService from "../../services/authService.ts";
 
 interface SignupFormData {
   fullName: string;
@@ -16,6 +18,9 @@ const Signup: React.FC = () => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<Partial<SignupFormData>>({});
+  const [generalError, setGeneralError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,6 +36,10 @@ const Signup: React.FC = () => {
         [name]: undefined,
       }));
     }
+    
+    // Clear general messages when user starts typing again
+    if (generalError) setGeneralError("");
+    if (success) setSuccess("");
   };
 
   const validateForm = (): boolean => {
@@ -58,7 +67,10 @@ const Signup: React.FC = () => {
       isValid = false;
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+      isValid = false;
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
       isValid = false;
     }
@@ -67,14 +79,47 @@ const Signup: React.FC = () => {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGeneralError("");
+    setSuccess("");
+    
+    // Use the validateForm function to perform comprehensive validation
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
 
-    if (validateForm()) {
-      console.log("Signup data:", formData);
+    try {
+      // Prepare user data according to the authService.signup interface
+      const userData = {
+        email: formData.email, // Using ememail
+        password: formData.password,
+        firstName: formData.fullName.split(' ')[0], // Basic split for first/last name
+        lastName: formData.fullName.split(' ').slice(1).join(' ')
+      };
+      
+      const response = await authService.signup(userData);
 
-      // For demo purposes only - normally would call an API
-      alert(`Account created for ${formData.email}!`);
+      console.log("Signup successful:", response);
+      setSuccess("Registration successful! You can now log in.");
+      
+      // Reset form after successful registration
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+      });
+    } catch (err: any) {
+      console.error("Signup error:", err);
+      setGeneralError(
+        err.response?.data?.message || 
+        "Registration failed. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -86,6 +131,18 @@ const Signup: React.FC = () => {
             Create your account
           </h2>
         </div>
+
+        {generalError && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4">
+            <p className="text-red-700">{generalError}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 border-l-4 border-green-400 p-4">
+            <p className="text-green-700">{success}</p>
+          </div>
+        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -209,9 +266,14 @@ const Signup: React.FC = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={isSubmitting}
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                isSubmitting 
+                  ? "bg-blue-400 cursor-not-allowed" 
+                  : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              }`}
             >
-              Sign up
+              {isSubmitting ? "Signing up..." : "Sign up"}
             </button>
           </div>
 
