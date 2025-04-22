@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import authService from "../../services/authService.ts";
+
+import { useNavigate } from "react-router-dom";
 
 interface LoginFormData {
-  email: string;
+  username: string;
   password: string;
 }
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
+    username: "",
     password: "",
   });
   const [error, setError] = useState<string>("");
@@ -26,16 +31,28 @@ const Login: React.FC = () => {
     setError("");
 
     // Basic validation
-    if (!formData.email || !formData.password) {
+    if (!formData.username || !formData.password) {
       setError("Please fill in all fields");
       return;
     }
 
-    // Here you would add your authentication logic
+    // Authentication logic
     console.log("Login attempt:", formData);
 
-    // For demo purposes only - normally would call an API
-    alert(`Login attempt with email: ${formData.email}`);
+    authService
+      .login(formData.username, formData.password)
+      .then((response) => {
+        console.log("Login successful:", response);
+        if (response.token) {
+          localStorage.setItem("user", JSON.stringify(response));
+        }
+
+        navigate("/course"); // Redirect to dashboard or home page
+      })
+      .catch((error) => {
+        console.error("Login failed:", error);
+        setError("Invalid username or password");
+      });
   };
 
   return (
@@ -50,17 +67,17 @@ const Login: React.FC = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
+              <label htmlFor="username" className="sr-only">
+                Username
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                id="username"
+                name="username"
+                type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
+                placeholder="Username"
+                value={formData.username}
                 onChange={handleChange}
               />
             </div>

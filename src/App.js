@@ -20,7 +20,7 @@ function App() {
         {<NavBar />}
         <Routes>
           {/* Redirect root path to login page */}
-          <Route path="/" element={<Navigate to="/course" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Authentication routes */}
           <Route path="/login" element={<Login />} />
